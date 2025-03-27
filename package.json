@@ -26,7 +26,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "dev": "concurrently \"npm start\" \"nodemon server.js\"",
-    "vercel-build": "npm run build"
+    "vercel-build": "react-scripts build"
   },
   "eslintConfig": {
     "extends": [

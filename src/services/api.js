@@ -6,7 +6,9 @@ const getApiBaseUrl = () => {
   // Check if we're in production (Vercel)
   if (process.env.NODE_ENV === 'production') {
     // Use the environment variable if available, or default to your Vercel API URL
-    return process.env.REACT_APP_API_URL || 'https://businesstycoon.vercel.app/';
+    // Remove the trailing slash to avoid double slashes in API requests
+    const baseUrl = process.env.REACT_APP_API_URL || 'https://businesstycoon.vercel.app';
+    return baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
   }
   
   // For local development, use the current hostname with port 3000
