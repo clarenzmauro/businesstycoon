@@ -3,7 +3,7 @@ import { useGameContext } from './context/GameContext';
 import { useAuth } from './context/AuthContext';
 import styled from 'styled-components';
 import './App.css';
-import { FaSignOutAlt, FaTrophy, FaQuestionCircle, FaChartLine, FaStore, FaUsers, FaArrowUp } from 'react-icons/fa';
+import { FaSignOutAlt, FaTrophy, FaQuestionCircle, FaCoins, FaCalendarDay } from 'react-icons/fa';
 
 // Components
 import Dashboard from './components/Dashboard';
@@ -19,10 +19,9 @@ import AuthContainer from './components/Auth/AuthContainer';
 import Leaderboard from './components/Leaderboard';
 
 const App = () => {
-  const { gameState, initializeGame, saveStatus, resetGame } = useGameContext();
+  const { gameState, initializeGame, saveStatus, resetGame, advanceDay, collectAllRevenue } = useGameContext();
   const { isAuthenticated, user, logout } = useAuth();
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [activeTab, setActiveTab] = useState('dashboard');
   const [showHelp, setShowHelp] = useState(false);
 
   // Initialize game on first load - only runs once
@@ -48,9 +47,7 @@ const App = () => {
     setShowHelp(!showHelp);
   };
   
-  const switchTab = (tab) => {
-    setActiveTab(tab);
-  };
+  // Mobile navigation functionality removed
   
   // Initialize leaderboard visibility from saved preference
   useEffect(() => {
@@ -104,39 +101,7 @@ const App = () => {
       {gameState.gameOver && <GameOver />}
       {showHelp && <HelpOverlay onClose={toggleHelp} />}
       
-      {/* Mobile Navigation - Only visible on mobile */}
-      {isAuthenticated && (
-        <MobileNavigation>
-          <NavTab 
-            $active={activeTab === 'dashboard'} 
-            onClick={() => switchTab('dashboard')}
-          >
-            <FaChartLine />
-            <span>Dashboard</span>
-          </NavTab>
-          <NavTab 
-            $active={activeTab === 'business'} 
-            onClick={() => switchTab('business')}
-          >
-            <FaStore />
-            <span>Business</span>
-          </NavTab>
-          <NavTab 
-            $active={activeTab === 'upgrades'} 
-            onClick={() => switchTab('upgrades')}
-          >
-            <FaArrowUp />
-            <span>Upgrades</span>
-          </NavTab>
-          <NavTab 
-            $active={activeTab === 'staff'} 
-            onClick={() => switchTab('staff')}
-          >
-            <FaUsers />
-            <span>Staff</span>
-          </NavTab>
-        </MobileNavigation>
-      )}
+      {/* Mobile navigation removed as requested */}
       
       {/* Leaderboard Panel - Shown when leaderboard button is clicked */}
       {showLeaderboard && (
@@ -148,7 +113,7 @@ const App = () => {
       )}
       
       <MainContent>
-        <LeftPanel className={activeTab === 'dashboard' ? 'active' : ''}>
+        <LeftPanel>
           <Dashboard />
           <MarketEventsWrapper>
             <MarketEvents />
@@ -156,15 +121,29 @@ const App = () => {
         </LeftPanel>
         
         <RightPanel>
-          <BusinessPanel className={activeTab === 'business' ? 'active' : ''} />
+          <BusinessPanel />
           <PanelContainer>
-            <UpgradesPanel className={activeTab === 'upgrades' ? 'active' : ''} />
-            <StaffPanel className={activeTab === 'staff' ? 'active' : ''} />
+            <UpgradesPanel />
+            <StaffPanel />
           </PanelContainer>
         </RightPanel>
       </MainContent>
       
       <Notifications />
+      
+      {/* Mobile Action Bar - Only visible on mobile */}
+      {isAuthenticated && (
+        <MobileActionBar>
+          <ActionButton onClick={collectAllRevenue}>
+            <FaCoins />
+            <span>Collect All</span>
+          </ActionButton>
+          <ActionButton onClick={advanceDay}>
+            <FaCalendarDay />
+            <span>Next Day</span>
+          </ActionButton>
+        </MobileActionBar>
+      )}
     </AppContainer>
   );
 };
@@ -193,16 +172,12 @@ const MainContent = styled.main`
   }
   
   @media (max-width: 768px) {
-    padding-bottom: 60px; /* Space for mobile navigation */
-    
-    /* Hide all panels by default on mobile */
+    /* Show all panels on mobile in a stacked layout */
     > div {
-      display: none;
-    }
-    
-    /* Show only active panel */
-    > div.active {
       display: flex;
+      flex-direction: column;
+      width: 100%;
+      margin-bottom: 1.5rem;
     }
   }
 `;
@@ -358,8 +333,8 @@ const MarketEventsWrapper = styled.div`
   }
 `;
 
-// Mobile navigation bar (only visible on small screens)
-const MobileNavigation = styled.nav`
+// Mobile navigation bar for essential actions
+const MobileActionBar = styled.nav`
   display: none;
   position: fixed;
   bottom: 0;
@@ -372,21 +347,29 @@ const MobileNavigation = styled.nav`
   @media (max-width: 768px) {
     display: flex;
     justify-content: space-around;
+    padding: 0.5rem;
   }
 `;
 
-const NavTab = styled.button`
+const ActionButton = styled.button`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
-  background: none;
+  padding: 0.75rem;
+  background-color: #4CAF50;
+  color: white;
   border: none;
-  color: ${props => props.$active ? '#4CAF50' : '#666'};
-  font-weight: ${props => props.$active ? '600' : 'normal'};
+  border-radius: 6px;
+  font-weight: 600;
   flex: 1;
+  margin: 0 0.5rem;
   cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: #3e8e41;
+  }
   
   svg {
     font-size: 1.25rem;
@@ -394,7 +377,7 @@ const NavTab = styled.button`
   }
   
   span {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
   }
 `;
 

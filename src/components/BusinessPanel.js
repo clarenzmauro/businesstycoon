@@ -290,6 +290,12 @@ const PanelHeader = styled.div`
   h3 {
     font-size: 1.25rem;
   }
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
 `;
 
 const BusinessCount = styled.span`
@@ -298,6 +304,10 @@ const BusinessCount = styled.span`
   border-radius: 20px;
   font-size: 0.875rem;
   color: #555;
+  
+  @media (max-width: 768px) {
+    padding: 0.25rem 0.5rem;
+  }
 `;
 
 const EmptyState = styled.div`
@@ -333,15 +343,32 @@ const BusinessCard = styled.div`
     transform: translateY(-3px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
+  
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
 `;
 
 const BusinessIcon = styled.div`
   font-size: 2rem;
   margin-right: 1rem;
+  
+  @media (max-width: 768px) {
+    font-size: 1.75rem;
+    margin-right: 0.75rem;
+    order: 0;
+  }
 `;
 
 const BusinessDetails = styled.div`
   flex: 1;
+  
+  @media (max-width: 768px) {
+    flex: 1 0 60%;
+    order: 1;
+  }
 `;
 
 const BusinessName = styled.div`
@@ -380,6 +407,16 @@ const CollectButton = styled.button`
   &:hover {
     background-color: #3e8e41;
   }
+  
+  @media (max-width: 768px) {
+    flex: 1;
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+  }
 `;
 
 const SectionDivider = styled.hr`
@@ -393,6 +430,10 @@ const BusinessGrid = styled.div`
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const BusinessPurchaseCard = styled.div`
@@ -612,12 +653,22 @@ const ExpandIcon = styled.div`
   font-size: 0.8rem;
   color: #777;
   margin-left: 0.5rem;
+  
+  @media (max-width: 768px) {
+    order: 2;
+    margin-left: auto;
+  }
 `;
 
 const HeaderActions = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: space-between;
+  }
 `;
 
 const CollectAllButton = styled.button`
@@ -646,6 +697,13 @@ const CollectAllButton = styled.button`
 const BusinessActions = styled.div`
   display: flex;
   gap: 0.5rem;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: space-between;
+    order: 3;
+    margin-top: 0.5rem;
+  }
 `;
 
 const SellButton = styled.button`
