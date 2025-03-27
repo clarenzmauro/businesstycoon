@@ -60,18 +60,14 @@ Business Tycoon is an addictive browser-based simulation game that puts you in t
 - **Staff Tab** - Hire and manage your workforce
 - **Leaderboard** - See how you rank against other players
 
-## 💬 Community & Support
-
-- **Discord Server**: Join our [Discord community](https://discord.gg/businesstycoon) to connect with other players
-- **Reddit**: Follow us on [r/BusinessTycoonGame](https://reddit.com/r/BusinessTycoonGame) for updates and discussions
-- **Twitter**: Follow [@BusinessTycoon](https://twitter.com/BusinessTycoon) for the latest news
+## 💬 Support
 
 ### Reporting Issues
 
 Encountered a bug or have a suggestion? We'd love to hear from you!
 
 - Submit issues via our [Issue Tracker](https://github.com/yourusername/businesstycoon/issues)
-- Email us at support@businesstycoon.com
+- Email the developer at m27oflegend@gmail.com
 
 ## 📱 Mobile Support
 
@@ -87,12 +83,6 @@ We're constantly improving Business Tycoon with new features and content. Check 
 - **Special Events**: Limited-time challenges with unique rewards
 - **Achievement System**: Earn badges for your accomplishments
 - **Extended Staff System**: More staff types with specialized abilities
-
-## 📜 Legal
-
-- **Terms of Service**: [View Terms](https://businesstycoon.vercel.app/terms)
-- **Privacy Policy**: [View Policy](https://businesstycoon.vercel.app/privacy)
-- **License**: This game is licensed under the MIT License
 
 ---
 
