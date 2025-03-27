@@ -21,8 +21,8 @@ const MarketEvents = () => {
         </EmptyState>
       ) : (
         <EventsList>
-          {activeEvents.map(event => (
-            <EventCard key={event.id}>
+          {activeEvents.map((event, index) => (
+            <EventCard key={`${event.id}_${index}`}>
               <EventIcon>{event.icon}</EventIcon>
               <EventDetails>
                 <EventName>{event.name}</EventName>
