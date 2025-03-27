@@ -1,0 +1,642 @@
+import React, { createContext, useContext, useReducer } from 'react';
+
+// Initial game state
+const initialState = {
+  initialized: false,
+  showTutorial: true,
+  money: 10000,
+  businesses: [],
+  staff: [],
+  upgrades: [],
+  level: 1,
+  experience: 0,
+  experienceToNextLevel: 1000,
+  day: 1,
+  marketEvents: [],
+  gameOver: false,
+  stats: {
+    totalRevenue: 0,
+    totalExpenses: 0,
+    netWorth: 10000
+  },
+  notifications: []
+};
+
+// Business types available in the game
+export const BUSINESS_TYPES = [
+  {
+    id: 'coffee_shop',
+    name: 'Coffee Shop',
+    basePrice: 5000,
+    baseRevenue: 500,
+    description: 'A small coffee shop serving hot beverages and pastries.',
+    unlockLevel: 1,
+    icon: '☕'
+  },
+  {
+    id: 'restaurant',
+    name: 'Restaurant',
+    basePrice: 25000,
+    baseRevenue: 2000,
+    description: 'A mid-sized restaurant offering full meals and drinks.',
+    unlockLevel: 3,
+    icon: '🍽️'
+  },
+  {
+    id: 'retail_store',
+    name: 'Retail Store',
+    basePrice: 50000,
+    baseRevenue: 3500,
+    description: 'A retail store selling various consumer goods.',
+    unlockLevel: 5,
+    icon: '🛍️'
+  },
+  {
+    id: 'tech_startup',
+    name: 'Tech Startup',
+    basePrice: 100000,
+    baseRevenue: 8000,
+    description: 'A technology startup developing innovative products.',
+    unlockLevel: 8,
+    icon: '💻'
+  },
+  {
+    id: 'factory',
+    name: 'Factory',
+    basePrice: 250000,
+    baseRevenue: 15000,
+    description: 'A manufacturing facility producing goods at scale.',
+    unlockLevel: 10,
+    icon: '🏭'
+  }
+];
+
+// Staff types
+export const STAFF_TYPES = [
+  {
+    id: 'manager',
+    name: 'Manager',
+    baseSalary: 1000,
+    description: 'Increases business efficiency by 10%',
+    effect: { type: 'efficiency', value: 0.1 },
+    icon: '👨‍💼'
+  },
+  {
+    id: 'marketer',
+    name: 'Marketing Specialist',
+    baseSalary: 1200,
+    description: 'Increases revenue by 15%',
+    effect: { type: 'revenue', value: 0.15 },
+    icon: '📊'
+  },
+  {
+    id: 'accountant',
+    name: 'Accountant',
+    baseSalary: 1100,
+    description: 'Reduces expenses by 10%',
+    effect: { type: 'expenses', value: -0.1 },
+    icon: '📝'
+  },
+  {
+    id: 'consultant',
+    name: 'Business Consultant',
+    baseSalary: 2000,
+    description: 'Provides strategic advice, increasing all metrics by 5%',
+    effect: { type: 'all', value: 0.05 },
+    icon: '🧠'
+  }
+];
+
+// Upgrade types
+export const UPGRADE_TYPES = [
+  {
+    id: 'equipment',
+    name: 'Better Equipment',
+    basePrice: 5000,
+    description: 'Upgrade equipment to increase productivity by 20%',
+    effect: { type: 'productivity', value: 0.2 },
+    icon: '🔧'
+  },
+  {
+    id: 'training',
+    name: 'Staff Training',
+    basePrice: 3000,
+    description: 'Train staff to improve efficiency by 15%',
+    effect: { type: 'efficiency', value: 0.15 },
+    icon: '📚'
+  },
+  {
+    id: 'marketing',
+    name: 'Marketing Campaign',
+    basePrice: 8000,
+    description: 'Launch a marketing campaign to increase revenue by 25%',
+    effect: { type: 'revenue', value: 0.25 },
+    icon: '📣'
+  },
+  {
+    id: 'automation',
+    name: 'Automation Systems',
+    basePrice: 15000,
+    description: 'Implement automation to reduce costs by 20%',
+    effect: { type: 'expenses', value: -0.2 },
+    icon: '🤖'
+  }
+];
+
+// Market events that can occur
+export const MARKET_EVENTS = [
+  {
+    id: 'economic_boom',
+    name: 'Economic Boom',
+    description: 'The economy is thriving! All businesses generate 30% more revenue.',
+    effect: { type: 'revenue', value: 0.3, duration: 5 },
+    probability: 0.1,
+    icon: '📈'
+  },
+  {
+    id: 'recession',
+    name: 'Economic Recession',
+    description: 'Economic downturn! All businesses generate 25% less revenue.',
+    effect: { type: 'revenue', value: -0.25, duration: 5 },
+    probability: 0.1,
+    icon: '📉'
+  },
+  {
+    id: 'tax_cut',
+    name: 'Tax Cut',
+    description: 'Government reduces taxes! Your expenses decrease by 15%.',
+    effect: { type: 'expenses', value: -0.15, duration: 3 },
+    probability: 0.15,
+    icon: '💰'
+  },
+  {
+    id: 'tax_increase',
+    name: 'Tax Increase',
+    description: 'Government increases taxes! Your expenses increase by 15%.',
+    effect: { type: 'expenses', value: 0.15, duration: 3 },
+    probability: 0.15,
+    icon: '💸'
+  },
+  {
+    id: 'new_trend',
+    name: 'New Market Trend',
+    description: 'A new trend emerges! One random business type gets a 40% revenue boost.',
+    effect: { type: 'specific_business', value: 0.4, duration: 4 },
+    probability: 0.2,
+    icon: '🌟'
+  }
+];
+
+// Game reducer to handle state updates
+const gameReducer = (state, action) => {
+  switch (action.type) {
+    case 'INITIALIZE_GAME':
+      // Try to load saved game from localStorage
+      const savedGame = localStorage.getItem('businessTycoonSave');
+      if (savedGame) {
+        try {
+          const parsedSave = JSON.parse(savedGame);
+          return { ...parsedSave, initialized: true };
+        } catch (error) {
+          console.error('Error loading saved game:', error);
+        }
+      }
+      // If no save or error loading, return fresh state
+      return { ...initialState, initialized: true };
+      
+    case 'PURCHASE_BUSINESS':
+      const { businessType } = action.payload;
+      const businessTypeData = BUSINESS_TYPES.find(b => b.id === businessType);
+      
+      // Check if player has enough money
+      if (state.money < businessTypeData.basePrice) {
+        return {
+          ...state,
+          notifications: [
+            ...state.notifications,
+            { id: Date.now(), type: 'error', message: 'Not enough money to purchase this business!' }
+          ]
+        };
+      }
+      
+      // Add the new business
+      const newBusiness = {
+        id: `${businessType}_${Date.now()}`,
+        type: businessType,
+        level: 1,
+        revenue: businessTypeData.baseRevenue,
+        lastCollected: Date.now(),
+        lastCollectedDay: state.day, // Set to current day so it can't be collected until the next day
+        purchasedOnDay: state.day, // Track which day it was purchased
+        upgrades: []
+      };
+      
+      return {
+        ...state,
+        money: state.money - businessTypeData.basePrice,
+        businesses: [...state.businesses, newBusiness],
+        notifications: [
+          ...state.notifications,
+          { id: Date.now(), type: 'success', message: `Purchased a new ${businessTypeData.name}!` }
+        ]
+      };
+      
+    case 'COLLECT_REVENUE':
+      const { businessId } = action.payload;
+      const business = state.businesses.find(b => b.id === businessId);
+      const businessData = BUSINESS_TYPES.find(b => b.id === business.type);
+      
+      // Check if business was purchased today
+      if (business.purchasedOnDay === state.day) {
+        return {
+          ...state,
+          notifications: [
+            ...state.notifications,
+            { id: Date.now(), type: 'error', message: `This business was just purchased today! You can collect revenue starting tomorrow.` }
+          ]
+        };
+      }
+      
+        return {
+          ...state,
+          notifications: [
+            ...state.notifications,
+            { id: Date.now(), type: 'error', message: `This business was just purchased today! You can collect revenue starting tomorrow.` }
+          ]
+        };
+      }
+      
+      // Check if already collected today (prevent multiple collections per day)
+      // Compare with the current day counter instead of real date
+      if (business.lastCollectedDay === state.day) {
+        return {
+          ...state,
+          notifications: [
+            ...state.notifications,
+            { id: Date.now(), type: 'error', message: `You've already collected revenue from this business today!` }
+          ]
+        };
+      }
+      
+      // Calculate revenue based on time passed, upgrades, staff, etc.
+      const baseRevenue = businessData.baseRevenue * business.level;
+      let revenueMultiplier = 1;
+      
+      // Apply staff effects
+      state.staff.forEach(staff => {
+        if (staff.effect.type === 'revenue' || staff.effect.type === 'all') {
+          revenueMultiplier += staff.effect.value;
+        }
+      });
+      
+      // Apply business upgrades
+      business.upgrades.forEach(upgrade => {
+        if (upgrade.effect.type === 'revenue' || upgrade.effect.type === 'productivity') {
+          revenueMultiplier += upgrade.effect.value;
+        }
+      });
+      
+      // Apply active market events
+      state.marketEvents.forEach(event => {
+        if ((event.effect.type === 'revenue' || event.effect.type === 'all') && event.active) {
+          revenueMultiplier += event.effect.value;
+        }
+      });
+      
+      const collectedRevenue = Math.round(baseRevenue * revenueMultiplier);
+      
+      // Update the business and player money
+      const updatedBusinesses = state.businesses.map(b => 
+        b.id === businessId 
+          ? { ...b, lastCollected: Date.now(), lastCollectedDay: state.day } 
+          : b
+      );
+      
+      return {
+        ...state,
+        money: state.money + collectedRevenue,
+        businesses: updatedBusinesses,
+        stats: {
+          ...state.stats,
+          totalRevenue: state.stats.totalRevenue + collectedRevenue
+        },
+        notifications: [
+          ...state.notifications,
+          { id: Date.now(), type: 'info', message: `Collected $${collectedRevenue} from ${businessData.name}!` }
+        ]
+      };
+      
+    case 'HIRE_STAFF':
+      const { staffType } = action.payload;
+      const staffTypeData = STAFF_TYPES.find(s => s.id === staffType);
+      
+      // Check if player has enough money
+      if (state.money < staffTypeData.baseSalary * 3) { // Initial hiring cost is 3x salary
+        return {
+          ...state,
+          notifications: [
+            ...state.notifications,
+            { id: Date.now(), type: 'error', message: 'Not enough money to hire this staff member!' }
+          ]
+        };
+      }
+      
+      // Add the new staff member
+      const newStaff = {
+        id: `${staffType}_${Date.now()}`,
+        type: staffType,
+        level: 1,
+        salary: staffTypeData.baseSalary,
+        effect: { ...staffTypeData.effect },
+        hiredAt: Date.now()
+      };
+      
+      return {
+        ...state,
+        money: state.money - (staffTypeData.baseSalary * 3),
+        staff: [...state.staff, newStaff],
+        stats: {
+          ...state.stats,
+          totalExpenses: state.stats.totalExpenses + (staffTypeData.baseSalary * 3)
+        },
+        notifications: [
+          ...state.notifications,
+          { id: Date.now(), type: 'success', message: `Hired a new ${staffTypeData.name}!` }
+        ]
+      };
+      
+    case 'PURCHASE_UPGRADE':
+      const { upgradeType, businessId: targetBusinessId } = action.payload;
+      const upgradeTypeData = UPGRADE_TYPES.find(u => u.id === upgradeType);
+      
+      // Check if player has enough money
+      if (state.money < upgradeTypeData.basePrice) {
+        return {
+          ...state,
+          notifications: [
+            ...state.notifications,
+            { id: Date.now(), type: 'error', message: 'Not enough money for this upgrade!' }
+          ]
+        };
+      }
+      
+      // Add the upgrade to the specified business
+      const updatedBusinessesWithUpgrade = state.businesses.map(b => 
+        b.id === targetBusinessId 
+          ? { 
+              ...b, 
+              upgrades: [...b.upgrades, { 
+                id: `${upgradeType}_${Date.now()}`, 
+                type: upgradeType,
+                effect: { ...upgradeTypeData.effect } 
+              }] 
+            } 
+          : b
+      );
+      
+      return {
+        ...state,
+        money: state.money - upgradeTypeData.basePrice,
+        businesses: updatedBusinessesWithUpgrade,
+        stats: {
+          ...state.stats,
+          totalExpenses: state.stats.totalExpenses + upgradeTypeData.basePrice
+        },
+        notifications: [
+          ...state.notifications,
+          { id: Date.now(), type: 'success', message: `Purchased ${upgradeTypeData.name} upgrade!` }
+        ]
+      };
+      
+    case 'ADVANCE_DAY':
+      // Process daily operations
+      let newMoney = state.money;
+      let newExperience = state.experience;
+      
+      // Clear non-critical notifications when advancing day
+      const importantNotifications = state.notifications.filter(n => n.type === 'error');
+      let newTotalRevenue = state.stats.totalRevenue;
+      let newTotalExpenses = state.stats.totalExpenses;
+      
+      // Process staff salaries
+      state.staff.forEach(staff => {
+        newMoney -= staff.salary;
+        newTotalExpenses += staff.salary;
+      });
+      
+      // Generate random market events
+      let activeMarketEvents = [...state.marketEvents];
+      
+      // Update duration of existing events
+      activeMarketEvents = activeMarketEvents
+        .map(event => {
+          if (event.active) {
+            return {
+              ...event,
+              remainingDays: event.remainingDays - 1,
+              active: event.remainingDays > 1
+            };
+          }
+          return event;
+        })
+        .filter(event => !event.active || event.remainingDays > 0);
+      
+      // Possibly add new event
+      const eventRoll = Math.random();
+      let eventAdded = false;
+      
+      MARKET_EVENTS.forEach(eventType => {
+        if (!eventAdded && eventRoll <= eventType.probability) {
+          const newEvent = {
+            ...eventType,
+            active: true,
+            remainingDays: eventType.effect.duration,
+            startedAt: state.day
+          };
+          activeMarketEvents.push(newEvent);
+          eventAdded = true;
+        }
+      });
+      
+      // Add experience for the day - only if player has at least one business
+      if (state.businesses.length > 0) {
+        newExperience += 100 + (state.businesses.length * 50);
+      }
+      
+      // Check for level up
+      let newLevel = state.level;
+      let newExperienceToNextLevel = state.experienceToNextLevel;
+      
+      if (newExperience >= state.experienceToNextLevel) {
+        newLevel += 1;
+        newExperience -= state.experienceToNextLevel;
+        newExperienceToNextLevel = Math.floor(state.experienceToNextLevel * 1.5);
+      }
+      
+      // Calculate net worth
+      const businessValue = state.businesses.reduce((total, business) => {
+        const businessType = BUSINESS_TYPES.find(b => b.id === business.type);
+        return total + (businessType.basePrice * business.level);
+      }, 0);
+      
+      const netWorth = newMoney + businessValue;
+      
+      // Check for bankruptcy (game over)
+      let isGameOver = false;
+      if (netWorth < 0 || (newMoney <= 0 && state.businesses.length === 0)) {
+        isGameOver = true;
+        // Add bankruptcy notification
+        activeMarketEvents = [];
+      }
+      
+      return {
+        ...state,
+        money: newMoney,
+        day: state.day + 1,
+        experience: newExperience,
+        level: newLevel,
+        experienceToNextLevel: newExperienceToNextLevel,
+        marketEvents: activeMarketEvents,
+        gameOver: isGameOver,
+        stats: {
+          ...state.stats,
+          totalRevenue: newTotalRevenue,
+          totalExpenses: newTotalExpenses,
+          netWorth
+        },
+        notifications: isGameOver ? [
+          { id: Date.now(), type: 'error', message: 'GAME OVER: You are bankrupt! Your net worth has fallen below zero.' }
+        ] : importantNotifications
+      };
+      
+    case 'CLOSE_TUTORIAL':
+      return {
+        ...state,
+        showTutorial: false
+      };
+      
+    case 'CLEAR_NOTIFICATION':
+      const { notificationId } = action.payload;
+      return {
+        ...state,
+        notifications: state.notifications.filter(n => n.id !== notificationId)
+      };
+      
+    case 'CLEAR_ALL_NOTIFICATIONS':
+      return {
+        ...state,
+        notifications: []
+      };
+      
+    default:
+      return state;
+  }
+};
+
+// Create the context
+const GameContext = createContext();
+
+// Game provider component
+export const GameProvider = ({ children }) => {
+  const [gameState, dispatch] = useReducer(gameReducer, initialState);
+  
+  // Initialize game
+  const initializeGame = () => {
+    dispatch({ type: 'INITIALIZE_GAME' });
+  };
+  
+  // Manual save game function - only called explicitly, not automatically
+  const saveGame = () => {
+    try {
+      localStorage.setItem('businessTycoonSave', JSON.stringify(gameState));
+      console.log('Game saved to localStorage');
+    } catch (error) {
+      console.error('Error saving game:', error);
+    }
+  };
+  
+  // Purchase a new business
+  const purchaseBusiness = (businessType) => {
+    dispatch({ 
+      type: 'PURCHASE_BUSINESS', 
+      payload: { businessType } 
+    });
+  };
+  
+  // Collect revenue from a business
+  const collectRevenue = (businessId) => {
+    dispatch({
+      type: 'COLLECT_REVENUE',
+      payload: { businessId }
+    });
+  };
+  
+  // Hire staff
+  const hireStaff = (staffType) => {
+    dispatch({
+      type: 'HIRE_STAFF',
+      payload: { staffType }
+    });
+  };
+  
+  // Purchase upgrade for a business
+  const purchaseUpgrade = (upgradeType, businessId) => {
+    dispatch({
+      type: 'PURCHASE_UPGRADE',
+      payload: { upgradeType, businessId }
+    });
+  };
+  
+  // Advance to next day
+  const advanceDay = () => {
+    dispatch({ type: 'ADVANCE_DAY' });
+  };
+  
+  // Close tutorial
+  const closeTutorial = () => {
+    dispatch({ type: 'CLOSE_TUTORIAL' });
+  };
+  
+  // Clear notification
+  const clearNotification = (notificationId) => {
+    dispatch({
+      type: 'CLEAR_NOTIFICATION',
+      payload: { notificationId }
+    });
+  };
+  
+  // Clear all notifications
+  const clearAllNotifications = () => {
+    dispatch({ type: 'CLEAR_ALL_NOTIFICATIONS' });
+  };
+  
+  // Value object to be provided to consumers
+  const value = {
+    gameState,
+    initializeGame,
+    saveGame,
+    purchaseBusiness,
+    collectRevenue,
+    hireStaff,
+    purchaseUpgrade,
+    advanceDay,
+    closeTutorial,
+    clearNotification,
+    clearAllNotifications
+  };
+  
+  return (
+    <GameContext.Provider value={value}>
+      {children}
+    </GameContext.Provider>
+  );
+};
+
+// Custom hook for using the game context
+export const useGameContext = () => {
+  const context = useContext(GameContext);
+  if (!context) {
+    throw new Error('useGameContext must be used within a GameProvider');
+  }
+  return context;
+};
