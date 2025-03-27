@@ -3,8 +3,13 @@ import axios from 'axios';
 // Create an axios instance with default configuration
 // Determine the API base URL based on the current environment
 const getApiBaseUrl = () => {
-  // In production, you would use a proper environment variable
-  // For local development, we'll use the current hostname with port 3000
+  // Check if we're in production (Vercel)
+  if (process.env.NODE_ENV === 'production') {
+    // Use the environment variable if available, or default to your Vercel API URL
+    return process.env.REACT_APP_API_URL || 'https://businesstycoon.vercel.app/';
+  }
+  
+  // For local development, use the current hostname with port 3000
   const hostname = window.location.hostname;
   return `http://${hostname}:3000`;
 };

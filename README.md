@@ -49,6 +49,52 @@ A browser-based business simulation game where players build and manage their bu
 
 This project was bootstrapped with Create React App.
 
+## Deployment to Vercel
+
+### Prerequisites
+
+1. A [Vercel](https://vercel.com) account
+2. [Vercel CLI](https://vercel.com/docs/cli) installed globally: `npm i -g vercel`
+3. A MongoDB Atlas account for the database
+
+### Deployment Steps
+
+1. **Set up MongoDB Atlas**
+   - Create a cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+   - Create a database user with appropriate permissions
+   - Get your connection string
+
+2. **Configure Environment Variables on Vercel**
+   - Log in to your Vercel dashboard
+   - Create a new project and link it to your GitHub repository
+   - Add the following environment variables in the Vercel project settings:
+     - `MONGODB_URI`: Your MongoDB Atlas connection string
+     - `JWT_SECRET`: A secure random string for JWT token generation
+     - `REACT_APP_API_URL`: The URL of your deployed API (will be your Vercel deployment URL)
+
+3. **Deploy from the Command Line**
+   ```bash
+   # Login to Vercel
+   vercel login
+   
+   # Deploy to Vercel
+   vercel
+   
+   # For production deployment
+   vercel --prod
+   ```
+
+4. **Alternative: Deploy via GitHub Integration**
+   - Connect your GitHub repository to Vercel
+   - Configure the build settings as needed
+   - Vercel will automatically deploy when you push to your repository
+
+### Troubleshooting
+
+- If you encounter CORS issues, check that your API URL is correctly set
+- Make sure your MongoDB connection string is correct and the IP address is whitelisted
+- Check Vercel logs for any deployment errors
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
